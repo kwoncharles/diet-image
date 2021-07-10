@@ -35,7 +35,7 @@ async function resizeAll(dirname: string, { width, height, prefix = 'min' }: {
       const buffer = await promises.readFile(join(dirname, filename));
       sharp(buffer)
         .resize(width, height)
-        .toFile(join(dirname, prefix, `${prefix}-${filename}`))
+        .toFile(join(dirname, prefix, filename))
     } catch (e) {
       console.log('catched: !!! ', filename, e);
     }
