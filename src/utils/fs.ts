@@ -1,5 +1,9 @@
+import chalk from 'chalk';
 import { existsSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
+import { exit } from 'process';
+import prompts from 'prompts';
+import { isWriteable } from './is-writeable';
 
 export function getFilenamesInDir(dirname: string, option: {
   excludeHiddenFile: boolean;
@@ -19,7 +23,12 @@ export function getFilenamesInDir(dirname: string, option: {
 
 export function createFolderIfNotExist(dirPath: string) {
   if (!existsSync(dirPath)) {
-    mkdirSync(dirPath);
+    if (isWriteable(dirPath)) {
+      mkdirSync(dirPath);
+    } else {
+      console.error(`${dirPath} is not writeable`);
+      exit(0);
+    }
   }
 }
 
@@ -31,4 +40,18 @@ export function checkFolderIsEmpty(dirPath: string): boolean {
   }
 
   return true;
+}
+
+export function checkPathType(
+  path: string,
+): 'file' | 'folder' | 'unknown' {
+  const result = statSync(path);
+
+  if (result.isFile()) {
+    return 'file';
+  }
+  if (result.isDirectory()) {
+    return 'folder';
+  }
+  return 'unknown';
 }

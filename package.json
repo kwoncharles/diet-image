@@ -1,11 +1,28 @@
 {
   "name": "diet-image",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
   "license": "MIT",
+  "author": {
+    "email": "hello@kwoncheol.me",
+    "name": "kwoncharles",
+    "url": "https://github.com/kwoncharles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kwoncharles/diet-image"
+  },
+  "keywords": [
+    "resize",
+    "image-processing"
+  ],
   "engines": {
     "node": ">=10.13.0"
   },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "bin": "./dist/index.js",
   "scripts": {
     "resize": "ts-node src/index.ts"
   },
@@ -13,6 +30,8 @@
     "@types/node": "^15.6.2",
     "@types/prompts": "^2.0.12",
     "@types/sharp": "^0.28.3",
+    "commander": "^8.1.0",
+    "rimraf": "^3.0.2",
     "typescript": "^4.3.2"
   },
   "dependencies": {
