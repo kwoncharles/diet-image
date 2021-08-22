@@ -29,8 +29,8 @@ resize(
   program.args[0],
   {
     prefix,
-    width,
-    height,
+    width: width ? parseInt(width, 10) : undefined,
+    height: height ? parseInt(height, 10) : undefined,
     outDir: out,
   },
 );
