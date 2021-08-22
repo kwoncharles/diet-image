@@ -25,8 +25,7 @@
   "bin": "./dist/index.js",
   "scripts": {
     "prebuild": "rimraf ./dist",
-    "build": "ncc build ./src/index.ts -o dist --no-cache --minify --no-source-map-register",
-    "resize": "ts-node src/index.ts"
+    "build": "ncc build ./src/index.ts -o dist --no-cache --minify --no-source-map-register"
   },
   "devDependencies": {
     "@types/node": "^15.6.2",
