@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { exit } from 'process';
 import { isWriteable } from './is-writeable';
 
@@ -21,10 +21,12 @@ export function getFilenamesInDir(dirname: string, option: {
 
 export function createFolderIfNotExist(dirPath: string) {
   if (!existsSync(dirPath)) {
-    if (isWriteable(dirPath)) {
+    const parentDir = dirname(dirPath);
+
+    if (isWriteable(parentDir)) {
       mkdirSync(dirPath);
     } else {
-      console.error(`${dirPath} is not writeable`);
+      console.error(`${parentDir} is not writeable`);
       exit(0);
     }
   }
