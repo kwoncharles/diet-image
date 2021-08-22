@@ -1,10 +1,10 @@
 import chalk from "chalk";
 import { promises } from 'fs';
-import { basename, dirname, join, resolve, isAbsolute } from "path";
+import { basename, dirname, join, isAbsolute } from "path";
 import { exit } from "process";
 import prompts from "prompts";
 import sharp from "sharp";
-import { checkFolderIsEmpty, checkPathType, createFolderIfNotExist, getFilenamesInDir } from "./utils/fs";
+import { checkPathType, createFolderIfNotExist, getFilenamesInDir } from "./utils/fs";
 import { wait } from "./utils/wait";
 
 type ResizeOption = {
@@ -13,58 +13,51 @@ type ResizeOption = {
   prefix?: string;
   outDir?: string;
 }
-/**
- * output folder
- *  - 올바른 경로인지 체크 ✅
- *  - 존재하지 않으면 생성해줌 ✅
- *
- * path
- *  - 올바른 경로인지 체크 ✅
- *  - 파일일수도 폴더일수도 있음
- *    - 파일인 경우 파일name, 부모 경로 분리 ✅
- *    - 폴더인 경우 폴더경로 알아내기 ✅
- */
+
 export async function resize(_path: string, {
   width,
   height,
   outDir: _outDir,
   prefix = '',
 }: ResizeOption) {
-  let absolutePath = isAbsolute(_path)
+  const sizeInfoText = (width || height)
+    ? `${chalk.blueBright(width ? `width: ${width}px` : '')}${chalk.yellow(height ? ` height: ${height}px` : '')} 사이즈로 `
+    : '';
+  let absolutePathParam = isAbsolute(_path)
     ? _path
     : join(process.cwd(), _path);
-  let absoluteOutDir: string | undefined = _outDir
+  let absoluteOutDirParam: string | undefined = _outDir
     ? isAbsolute(_outDir)
       ? _outDir
       : join(process.cwd(), _outDir)
     : undefined;
 
   let absoluteInputDir: string;
-  let absoluteOutputDir: string;
+  let absoluteOutDir: string;
   let filenames: Array<string> = []; 
-  let helpText: string;
+  let inputInfoText: string;
 
   /**
    * Initialize base on path type
    */
-  switch (checkPathType(absolutePath)) {
+  switch (checkPathType(absolutePathParam)) {
     case 'file':
-      absoluteInputDir = dirname(absolutePath);
-      filenames = [basename(absolutePath)];
-      helpText = `${chalk.green(absolutePath)} 파일의`;
+      absoluteInputDir = dirname(absolutePathParam);
+      filenames = [basename(absolutePathParam)];
+      inputInfoText = `${chalk.green(absolutePathParam)} 파일의`;
       break;
     case 'folder':
-      absoluteInputDir = absolutePath;
-      filenames = getFilenamesInDir(absolutePath);
-      helpText = `${chalk.green(absolutePath)} 폴더 내부 이미지 파일의`;
+      absoluteInputDir = absolutePathParam;
+      filenames = getFilenamesInDir(absolutePathParam);
+      inputInfoText = `${chalk.green(absolutePathParam)} 폴더 내부 이미지 파일의`;
       break;
     case 'unknown':
     default:
-      console.error(`Cannot resolve ${absolutePath} correctly. Please check the path is image file or folder.`);
+      console.error(`Cannot resolve ${absolutePathParam} correctly. Please check the path is image file or folder.`);
       exit(0);
   }
   console.log(`
-❕ ${helpText} 사이즈를 ${chalk.blueBright(width ? `width: ${width}px` : '')}${chalk.yellow(height ? ` height: ${height}px` : '')}사이즈로 수정하겠습니다.\n
+❕ ${inputInfoText} 사이즈를 ${sizeInfoText}수정하겠습니다.\n
   `);
 
   await wait(1000);
@@ -72,9 +65,9 @@ export async function resize(_path: string, {
   /**
    * Check Output Directory
    */
-  absoluteOutputDir = absoluteOutDir ?? join(absoluteInputDir, 'min');
+  absoluteOutDir = absoluteOutDirParam ?? join(absoluteInputDir, 'min');
 
-  createFolderIfNotExist(absoluteOutputDir);
+  createFolderIfNotExist(absoluteOutDir);
 
   console.log();
 
@@ -84,7 +77,7 @@ export async function resize(_path: string, {
   let successfulJobCount = 0;
   let count = 0;
   await Promise.all(filenames.map(async (filename) => {
-    const currentOutPath = join(absoluteOutputDir, `${prefix}${filename}`);
+    const currentOutPath = join(absoluteOutDir, `${prefix}${filename}`);
     let skip = false;
     let isSuccess = true;
     let error;
@@ -139,6 +132,6 @@ export async function resize(_path: string, {
     chalk.green(`${successfulJobCount}`),
     'images are created.',
     'Check below\n',
-    `-> ${chalk.greenBright(absoluteOutputDir)}`,
+    `-> ${chalk.greenBright(absoluteOutDir)}`,
   );
 }
