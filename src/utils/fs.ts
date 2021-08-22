@@ -1,8 +1,6 @@
-import chalk from 'chalk';
 import { existsSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { exit } from 'process';
-import prompts from 'prompts';
 import { isWriteable } from './is-writeable';
 
 export function getFilenamesInDir(dirname: string, option: {
