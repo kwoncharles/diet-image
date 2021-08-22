@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { promises } from 'fs';
-import { basename, dirname, join, resolve } from "path";
+import { basename, dirname, join, resolve, isAbsolute } from "path";
 import { exit } from "process";
 import prompts from "prompts";
 import sharp from "sharp";
@@ -24,34 +24,43 @@ type ResizeOption = {
  *    - 파일인 경우 파일name, 부모 경로 분리 ✅
  *    - 폴더인 경우 폴더경로 알아내기 ✅
  */
-export async function resize(path: string, {
+export async function resize(_path: string, {
   width,
   height,
-  outDir,
+  outDir: _outDir,
   prefix = '',
 }: ResizeOption) {
-  let inputDir: string;
+  let absolutePath = isAbsolute(_path)
+    ? _path
+    : join(process.cwd(), _path);
+  let absoluteOutDir: string | undefined = _outDir
+    ? isAbsolute(_outDir)
+      ? _outDir
+      : join(process.cwd(), _outDir)
+    : undefined;
+
+  let absoluteInputDir: string;
+  let absoluteOutputDir: string;
   let filenames: Array<string> = []; 
-  let outputDir: string;
   let helpText: string;
 
   /**
    * Initialize base on path type
    */
-  switch (checkPathType(path)) {
+  switch (checkPathType(absolutePath)) {
     case 'file':
-      inputDir = dirname(path);
-      filenames = [basename(path)];
-      helpText = `${chalk.green(resolve(path))} 파일의`;
+      absoluteInputDir = dirname(absolutePath);
+      filenames = [basename(absolutePath)];
+      helpText = `${chalk.green(absolutePath)} 파일의`;
       break;
     case 'folder':
-      inputDir = path;
-      filenames = getFilenamesInDir(path);
-      helpText = `${chalk.green(resolve(path))} 폴더 내부 이미지 파일의`;
+      absoluteInputDir = absolutePath;
+      filenames = getFilenamesInDir(absolutePath);
+      helpText = `${chalk.green(absolutePath)} 폴더 내부 이미지 파일의`;
       break;
     case 'unknown':
     default:
-      console.error(`Cannot resolve ${path} correctly. Please check the path is image file or folder.`);
+      console.error(`Cannot resolve ${absolutePath} correctly. Please check the path is image file or folder.`);
       exit(0);
   }
   console.log(`
@@ -63,8 +72,9 @@ export async function resize(path: string, {
   /**
    * Check Output Directory
    */
-  outputDir = outDir ?? join(process.cwd(), inputDir, 'min');
-  createFolderIfNotExist(outputDir);
+  absoluteOutputDir = absoluteOutDir ?? join(absoluteInputDir, 'min');
+
+  createFolderIfNotExist(absoluteOutputDir);
 
   console.log();
 
@@ -74,7 +84,7 @@ export async function resize(path: string, {
   let successfulJobCount = 0;
   let count = 0;
   await Promise.all(filenames.map(async (filename) => {
-    const currentOutPath = join(outputDir, `${prefix}${filename}`);
+    const currentOutPath = join(absoluteOutputDir, `${prefix}${filename}`);
     let skip = false;
     let isSuccess = true;
     let error;
@@ -102,7 +112,7 @@ export async function resize(path: string, {
        * resize
        */
       try {
-        const buffer = await promises.readFile(join(inputDir, filename));
+        const buffer = await promises.readFile(join(absoluteInputDir, filename));
         sharp(buffer)
           .resize(width, height)
           .toFile(currentOutPath)
@@ -129,6 +139,6 @@ export async function resize(path: string, {
     chalk.green(`${successfulJobCount}`),
     'images are created.',
     'Check below\n',
-    `-> ${chalk.greenBright(resolve(outputDir))}`,
+    `-> ${chalk.greenBright(absoluteOutputDir)}`,
   );
 }
