@@ -23,7 +23,7 @@ const program = new Commander.Command(packageJson.name)
 
 const {
   width, height, prefix, out
-} = program.opts()
+} = program.opts();
 
 resize(
   program.args[0],
@@ -33,4 +33,4 @@ resize(
     height,
     outDir: out,
   },
-)
+);
